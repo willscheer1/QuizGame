@@ -3,6 +3,8 @@ Quiz game where user answers a number of multiple choice questions.
 Following the quiz their score is displayed.
 """
 import random
+import time
+from inputimeout import inputimeout
 
 if __name__ == "__main__":
     
@@ -84,26 +86,40 @@ if __name__ == "__main__":
                 print(f"{letter}). {option}")
                 if option == question["answer"]:   # store correct letter 
                     answer = letter
+            print()
 
             # get user input
-            print("\n(Enter A, B, C, or D)")
-            guess = input("Answer: ").upper()
+            print("You have 10 seconds to answer.\n(Enter A, B, C, or D)")
+            start_time = time.time()
+            try:
+                guess = inputimeout(prompt="Answer: ", timeout=10).upper()  # sets input timer to 10 seconds
+            except Exception:
+                guess = "Timed Out"
 
             # validate input
-            while guess not in letters:
-                print("Invalid answer. Try Again.")
-                print("\n(Enter A, B, C, or D)")
-                guess = input("Answer: ").upper()
+            while guess not in letters and guess != "Timed Out":
+                try:
+                    print("Invalid answer. Try Again.")
+                    print("\n(Enter A, B, C, or D)")
+                    guess = inputimeout(prompt="Asnwer: ", timeout=max(10-(time.time()-start_time), 0)).upper() # update timer for time passed since 10 second countdown started
+                except Exception:
+                    guess = "Timed Out"
 
             # store guess
-            guesses.append(question["options"][letters.index(guess)])
+            try:
+                guesses.append(question["options"][letters.index(guess)])
+            except Exception:
+                guesses.append(guess)
 
             # check guess
             if guess ==  answer:
                 score += 1
                 print("Correct!")
             else:
-                print("Incorrect!")
+                if guess == "Timed Out":
+                    print("You ran out of time!")
+                else:
+                    print("Incorrect!")
                 print(f"The correct answer was {answer}: {question["answer"]}")
 
             # ask to move on
